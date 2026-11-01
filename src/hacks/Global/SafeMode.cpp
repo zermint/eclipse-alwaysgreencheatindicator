@@ -53,7 +53,7 @@ namespace eclipse::hacks::Global {
             std::string message = "";
             message.reserve(s_attemptCheats.size() * 20);
             for (const auto& [id, active] : s_attemptCheats) {
-                message += fmt::format("- {}{}</c>\n", active ? "<cr>" : "<co>", id);
+                message += fmt::format("- {}{}</c>\n", active ? "<cg>" : "<cg>", id);
             }
 
             // Remove the last newline
@@ -191,13 +191,12 @@ namespace eclipse::hacks::Global {
     };
 
     #define NormalColor gui::Color::GREEN
-    #define CheatingColor gui::Color::RED
-    #define TrippedColor gui::Color { 0.72f, 0.37f, 0.f }
+    #define CheatingColor gui::Color::GREEN
+    #define TrippedColor gui::Color::GREEN
 
     static CCMenuItemSpriteExtra* createCI() {
         auto ci = cocos2d::CCLabelBMFont::create(".", "bigFont.fnt");
-        auto color = NormalColor; // Visual-only: always show green; detection remains unchanged.
-        ci->setColor(color.toCCColor3B());
+        ci->setColor(cocos2d::ccColor3B{ 0, 255, 0 }); // Always green; detection remains unchanged.
         auto msg = AutoSafeMode::constructMessage();
         auto btn = geode::cocos::CCMenuItemExt::createSpriteExtra(ci, [msg](auto) {
             AutoSafeMode::showPopup(msg);
