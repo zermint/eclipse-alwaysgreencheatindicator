@@ -223,9 +223,8 @@ namespace eclipse::hacks::Labels {
                     label->setScale(config::get<float>("labels.cheat-indicator.scale", 0.5f));
                     label->setOpacity(static_cast<GLubyte>(config::get<float>("labels.cheat-indicator.opacity", 0.35f) * 255));
 
-                    // Cheating - Red, Tripped - Orange, Normal - Green
-                    auto color = gui::Color::GREEN; // Visual-only: always show green; detection remains unchanged.
-                    label->setColor(color.toCCColor3B());
+                    // Cheat Indicator is always green, regardless of cheat state.
+                    label->setColor(cocos2d::ccColor3B{ 0, 255, 0 }); // Always green; detection remains unchanged.
                 });
             }
 
@@ -329,7 +328,7 @@ namespace eclipse::hacks::Labels {
                 ->handleKeybinds();
             tab->addToggle("Cheat Indicator", "labels.cheat-indicator.visible")
                 ->callback([](bool) { updateLabels(); })
-                ->setDescription("Shows a red indicator if you have any cheats enabled.")
+                ->setDescription("Shows a green indicator if you have any cheats enabled.")
                 ->handleKeybinds()
                 ->addOptions([](std::shared_ptr<gui::MenuTab> options) {
                     options->addToggle("Show on Endscreen", "labels.cheat-indicator.endscreen")
