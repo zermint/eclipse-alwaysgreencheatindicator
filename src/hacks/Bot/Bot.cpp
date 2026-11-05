@@ -100,6 +100,41 @@ namespace eclipse::hacks::Bot {
         });
     }
 
+    void notifyReplay(std::string const& text, geode::NotificationIcon icon) {
+        geode::Notification::create(text, icon, 0.6f)->show();
+    }
+
+    // Toggles playback of the currently selected replay with one key press.
+    void toggleReplay() {
+        auto state = config::get<int>("bot.state", 0);
+
+        // playback is on -> turn it off
+        if (state == 2) {
+            config::set("bot.state", 0);
+            s_bot.setState(bot::State::DISABLED);
+            notifyReplay("Replay: OFF", geode::NotificationIcon::Info);
+            return;
+        }
+
+        // playback is off -> load the selected replay and turn it on
+        std::filesystem::path replayPath = config::get<std::string>("bot.selectedreplay", "");
+        if (!replayPath.empty() && std::filesystem::exists(replayPath)) {
+            auto res = s_bot.load(replayPath);
+            if (res.isErr()) {
+                notifyReplay("Failed to load replay", geode::NotificationIcon::Error);
+                return;
+            }
+        } else if (s_bot.getInputCount() == 0) {
+            notifyReplay("No replay selected", geode::NotificationIcon::Warning);
+            return;
+        }
+
+        s_bot.restart();
+        config::set("bot.state", 2);
+        s_bot.setState(bot::State::PLAYBACK);
+        notifyReplay("Replay: ON", geode::NotificationIcon::Success);
+    }
+
     class Bot : public hack::Hack {
         void init() override {
             const auto updateBotState = [](int state) { s_bot.setState(static_cast<bot::State>(state)); };
@@ -118,6 +153,14 @@ namespace eclipse::hacks::Bot {
             tab->addButton("Save")->callback(saveReplay);
             tab->addButton("Load")->callback(loadReplay);
             tab->addButton("Delete")->callback(deleteReplay);
+
+            // One-key toggle for the selected replay (default: Right Ctrl)
+            config::setIfEmpty("bot.togglereplay", keybinds::Keys::RightControl);
+            keybinds::Manager::get()->addListener("bot.togglereplay", [](bool down) {
+                if (!down) return;
+                toggleReplay();
+            });
+            tab->addKeybind("Toggle Replay Key", "bot.togglereplay")->setInternal();
         }
 
         [[nodiscard]] bool isCheating() override {
